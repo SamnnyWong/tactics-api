@@ -1,4 +1,4 @@
-# Logs
+;# Logs
 logs
 *.log
 npm-debug.log*
@@ -102,3 +102,14 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Jetbrains IDEs
+.idea
+
+# Serverless
+.webpack
+.serverless
+
+# env
+env.yml
+.env
