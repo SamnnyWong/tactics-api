@@ -39,7 +39,7 @@ export const main = handler(async (event, context, callback) => {
         console.log(`###Tactics Log###: Fetch commit message success, Latest version number is ${latestVersionNumber}.`);
         console.log("###Tactics Log###: Puting into DynamoDB: Initializing Parameter...");
 
-        let params = {
+        let params2 = {
             "TableName": VERSION_HISTORY_TABLE,
             "Item": {
                 "uuid": uuid.v1(),
@@ -50,7 +50,7 @@ export const main = handler(async (event, context, callback) => {
             }
         };
         console.log("###Tactics Log###: Puting into DynamoDB: Service Pending.u..");
-        let putDBResponse = await dynamoDb.put(params);
+        let putDBResponse = await dynamoDb.put(params2);
         // throwing this error might not have effect on the overall service functionality.
         // need to throw/handle dynamoDb.put original error properly
         // need to clarify how to return success message when put in db on success
@@ -58,7 +58,7 @@ export const main = handler(async (event, context, callback) => {
             throw Error('###Tactics Log###: Putting in DB failed, service terminating...');
         }
         console.log("###Tactics Log###: Putting into DynamoDB success.");
-        let successMessage = JSON.stringify(`Params: ${JSON.stringify(params)} put into table: ${VERSION_HISTORY_TABLE} success.`);
+        let successMessage = JSON.stringify(`Params: ${JSON.stringify(params2)} put into table: ${VERSION_HISTORY_TABLE} success.`);
 
         let response = {
             "latestPatchVersion": latestVersionNumber,

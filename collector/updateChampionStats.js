@@ -20,6 +20,7 @@ var jmespath = require('jmespath');
 // table name:
 // table arn
 
+
 export const main = handler(async (event, context) => {
     // s1: query latest version number from table `patch-version-history`
     // s2: construct the cDragon url and fetch the json data
@@ -31,14 +32,14 @@ export const main = handler(async (event, context) => {
     const PATCH_VERSION_HISTORY_TABLE = "patch-version-history";
     const PATCH_DATA_HISTORY_TABLE = "patch-data-history";
 
-    var params1 = {
+    var params3 = {
         TableName: PATCH_VERSION_HISTORY_TABLE,// give it your table name
         Select: "ALL_ATTRIBUTES"
     };
 
 
-    console.log("###Tactics Log###: Searching for latest patch version: Scanning table 'patch-version-history'...");
-    let scanDBResponse = await dynamoDb.scan(params1);
+    console.log("###Tactics Log###: Searching for latest patch version: Scanning DataBase...");
+    let scanDBResponse = await dynamoDb.scan(params3);
     // error
     let latestVersionNumber  = scanDBResponse.Items.pop().patchVersion;
 
@@ -52,6 +53,8 @@ export const main = handler(async (event, context) => {
     // console.log(`###Tactics Log###: ${JSON.stringify(scanDBResponse.Items)}`);
     // console.log(`###Tactics Log###: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`);
     // console.log(`###Tactics Log###: ${JSON.stringify(scanDBResponse.Items[0])}`);
+
+
 
     let latestPatchJsonData = await fetch(cdragonPatchDataURL);
     let result = await latestPatchJsonData.json();
