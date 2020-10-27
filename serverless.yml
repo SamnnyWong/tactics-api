@@ -37,7 +37,10 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:ap-northeast-1:*:*"
+        # - dynamodb:*
+        - lambda:InvokeFunction
+      Resource: '*'
+      # Resource: "arn:aws:dynamodb:ap-northeast-1:*:*"
 
 functions:
   # Defines an HTTP API endpoint that calls the main function in create.js
@@ -46,6 +49,10 @@ functions:
   # - cors: enabled CORS (Cross-Origin Resource Sharing) for browser cross
   #     domain api call
   # - authorizer: authenticate using the AWS IAM role
+
+  scrapertest:
+    handler: collector/writetos3DB.main
+
   create:
     handler: sample/create.main
     events:
@@ -129,3 +136,38 @@ functions:
 #  runtime: nodejs12.x
 #  stage: prod
 #  region: us-east-1
+resources:
+  Resources:
+    CompTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: comp-DB
+        AttributeDefinitions:
+          - AttributeName: ID
+            AttributeType: S
+        KeySchema:
+          - AttributeName: ID
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    VersionTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: patch-version-history
+        AttributeDefinitions:
+          - AttributeName: patchVersion
+            AttributeType: S
+        KeySchema:
+          - AttributeName: patchVersion
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+    DataTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: patch-data-history
+        AttributeDefinitions:
+          - AttributeName: patchVersion
+            AttributeType: S
+        KeySchema:
+          - AttributeName: patchVersion
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST

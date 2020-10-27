@@ -77,7 +77,7 @@ export const main = handler(async (event, context) => {
         Body: JSON.stringify(result)
     };
     const s3Response = await s3Bucket.putObject(params);
-    s3Bucket
+    // s3Bucket
     // const s3Response = await s3.putObject(params).promise();
     console.log("returning s3 response");
     console.log(s3Response);
