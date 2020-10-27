@@ -94,13 +94,6 @@ functions:
           path: latest-patch-json-data
           method: get
 
-  uploadPatchFileToS3:
-    handler: collector/uploadPatchFileToS3.main
-    events:
-      - http:
-          path: upload-file-to-s3
-          method: get
-
   testQueryDB:
     handler: sample/queryDynamoDb.main
 
@@ -112,6 +105,9 @@ functions:
 
   testUploadFileToS3:
     handler: sample/uploadFileToS3.main
+
+  writeChampionStatsToDB:
+    handler: collector/writeChampionStatsToDB.main
 #
 #  uploadFileToS3:
 #    handler: sample/uploadFileToS3.main

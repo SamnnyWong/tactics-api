@@ -48,7 +48,12 @@ export const main = handler(async (event, context, callback) => {
     if (!checkDBversion["Item"]) {
         console.log(`###Tactics Log###: Fetch commit message success, Latest version number is ${latestVersionNumber}.`);
         console.log("###Tactics Log###: Puting into DynamoDB: Initializing Parameter...");
+<<<<<<< HEAD
         let params = {
+=======
+
+        let params2 = {
+>>>>>>> e48fa27d22931e9eb9b1a6d9acb1f135715f11d2
             "TableName": VERSION_HISTORY_TABLE,
             "Item": {
             "uuid": uuid["v1"](),
@@ -59,7 +64,12 @@ export const main = handler(async (event, context, callback) => {
             }
         };
         console.log("###Tactics Log###: Puting into DynamoDB: Service Pending.u..");
+<<<<<<< HEAD
         let putDBResponse = await dynamoDb.put(params); // throwing this error might not have effect on the overall service functionality.
+=======
+        let putDBResponse = await dynamoDb.put(params2);
+        // throwing this error might not have effect on the overall service functionality.
+>>>>>>> e48fa27d22931e9eb9b1a6d9acb1f135715f11d2
         // need to throw/handle dynamoDb.put original error properly
         // need to clarify how to return success message when put in db on success
 
@@ -68,7 +78,12 @@ export const main = handler(async (event, context, callback) => {
         }
 
         console.log("###Tactics Log###: Putting into DynamoDB success.");
+<<<<<<< HEAD
         let successMessage = JSON.stringify(`Params: ${JSON.stringify(params)} put into table: ${VERSION_HISTORY_TABLE} success.`);
+=======
+        let successMessage = JSON.stringify(`Params: ${JSON.stringify(params2)} put into table: ${VERSION_HISTORY_TABLE} success.`);
+
+>>>>>>> e48fa27d22931e9eb9b1a6d9acb1f135715f11d2
         let response = {
             "latestPatchVersion": latestVersionNumber,
             "message": successMessage

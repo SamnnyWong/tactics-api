@@ -175,8 +175,6 @@ export const main = handler(async (event, context) => {
 //         });
 // });
 
-
-
 //
 // var bucketName = "tactics-uploads";
 // var keyName = "filename.txt";
