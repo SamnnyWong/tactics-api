@@ -37,10 +37,7 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-        # - dynamodb:*
-        - lambda:InvokeFunction
-      Resource: '*'
-      # Resource: "arn:aws:dynamodb:ap-northeast-1:*:*"
+      Resource: "arn:aws:dynamodb:ap-northeast-1:*:*"
 
 functions:
   # Defines an HTTP API endpoint that calls the main function in create.js
@@ -50,32 +47,28 @@ functions:
   #     domain api call
   # - authorizer: authenticate using the AWS IAM role
 
-  scrapertest:
-    handler: collector/writetos3DB.main
-
-  create:
-    handler: sample/create.main
-    events:
-      - http:
-          path: notes
-          method: post
-          cors: true
-          authorizer: aws_iam
-
-  hello:
-    handler: handler.hello
-    events:
-      - http:
-          path: hello
-          method: get
-
-
-  championpool:
-    handler: handler.hello
-    events:
-      - http:
-          path: championpool
-          method: get
+#  create:
+#    handler: sample/create.main
+#    events:
+#      - http:
+#          path: notes
+#          method: post
+#          cors: true
+#          authorizer: aws_iam
+#
+#  hello:
+#    handler: handler.hello
+#    events:
+#      - http:
+#          path: hello
+#          method: get
+#
+#  championpool:
+#    handler: handler.hello
+#    events:
+#      - http:
+#          path: championpool
+#          method: get
 
   getLatestPatchVersionNumber:
     handler: collector/getLatestPatchVersionNumber.main
@@ -86,7 +79,6 @@ functions:
 #          cors: true this enabled options request
 #          authorizer: aws_iam enable this to use auth key to get response
 
-
   getLatestPatchJsonData:
     handler: collector/getLatestPatchJsonData.main
     events:
@@ -94,21 +86,32 @@ functions:
           path: latest-patch-json-data
           method: get
 
-  testQueryDB:
-    handler: sample/queryDynamoDb.main
 
-  testListS3Object:
-    handler: sample/listS3Objects.main
+  getLatestPatchChange:
+    handler: collector/getLatestPatchChange.main
+    events:
+      - http:
+          path: latest-patch-change-data
+          method: get
 
-  testGetS3Objects:
-    handler: sample/getS3Objects.main
+  putChampionItemToDB:
+    handler: collector/putChampionItemToDB.main
 
-  testUploadFileToS3:
-    handler: sample/uploadFileToS3.main
+  localTest:
+    handler: sample/localTest.main
 
-  writeChampionStatsToDB:
-    handler: collector/writeChampionStatsToDB.main
+#  testQueryDB:
+#    handler: sample/queryDynamoDb.main
 #
+#  testListS3Object:
+#    handler: sample/listS3Objects.main
+#
+#  testGetS3Objects:
+#    handler: sample/getS3Objects.main
+#
+#  testUploadFileToS3:
+#    handler: sample/uploadFileToS3.main
+
 #  uploadFileToS3:
 #    handler: sample/uploadFileToS3.main
 #    events:
@@ -132,38 +135,3 @@ functions:
 #  runtime: nodejs12.x
 #  stage: prod
 #  region: us-east-1
-resources:
-  Resources:
-    CompTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: comp-DB
-        AttributeDefinitions:
-          - AttributeName: ID
-            AttributeType: S
-        KeySchema:
-          - AttributeName: ID
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
-    VersionTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: patch-version-history
-        AttributeDefinitions:
-          - AttributeName: patchVersion
-            AttributeType: S
-        KeySchema:
-          - AttributeName: patchVersion
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST
-    DataTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: patch-data-history
-        AttributeDefinitions:
-          - AttributeName: patchVersion
-            AttributeType: S
-        KeySchema:
-          - AttributeName: patchVersion
-            KeyType: HASH
-        BillingMode: PAY_PER_REQUEST

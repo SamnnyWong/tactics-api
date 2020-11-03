@@ -8,6 +8,8 @@ import * as uuid from "uuid";
 // service api: https://f8brp6pbai.execute-api.ap-northeast-1.amazonaws.com/dev/latest-patch-version
 export const main = handler(async (event, context, callback) => {
     const PATCH_VERSION_HISTORY_TABLE = "patch-version-history";
+    const PATCH_UPDATE_HISTORY_TABLE  = "patch-update-history";
+    const PATCH_DATA_HISTORY_TABLE    = "patch-data-history";
     var dateObject = new Date();
     let isoTimeStamp = dateObject.toISOString();
 
@@ -16,43 +18,54 @@ export const main = handler(async (event, context, callback) => {
         "message": ''
     };
 
-    // latestVersionNumber ///////////////////////////////////////////////////////////////////////////////////////////////////////
-    // latestVersionNumber ///////////////////////////////////////////////////////////////////////////////////////////////////////
-    // step one getting gh vn, possible error: gh connection timeout, gh commit format message change, gh repo dead,
-    console.log("###Tactics Log###: Fetching commit message...");
-    let githubCommitMessages = await fetch(constants.GITHUB_NA_VERSION_NUMBER_URL);
-    let result = await githubCommitMessages.json();
-    // console.log(result);
-
-    if (!githubCommitMessages || !result) {
-        throw Error('###Tactics Log###: Fetching commit message failed: Service Terminating...');
-    }
-    let commitMessage = jmespath.search(result, constants.EXPRESSION_FILTER_VERSION_NUMBER);
-    let latestVersionNumber = commitMessage.replace(/[^0-9\.]/g, "");
-    if (!commitMessage || !latestVersionNumber) {
-        throw Error('###Tactics Log###: Can not get version number from commit message: Service Terminating...');
-    }
-    console.log(`###Tactics Log###: Fetch commit message success, Latest version number is ${latestVersionNumber}.`);
-    // latestVersionNumber ///////////////////////////////////////////////////////////////////////////////////////////////////////
-    // latestVersionNumber ///////////////////////////////////////////////////////////////////////////////////////////////////////
-    // step two: getting pvh vn, possible error: dynamo db connection timeout
 
     var PVHParams = {
         TableName: PATCH_VERSION_HISTORY_TABLE,// give it your table name
         Select: "ALL_ATTRIBUTES"
     };
-    console.log("###Tactics Log###: Searching for current patch version number: Scanning table 'patch-version-history'...");
-    let scanDBResponse = await dynamoDb.scan(PVHParams);
-    if (!scanDBResponse) {
-        throw Error('###Tactics Log###: Can not get PVH record: Service Terminating...');
+
+    var PDHParams = {
+        TableName: PATCH_DATA_HISTORY_TABLE,// give it your table name
+        Select: "ALL_ATTRIBUTES"
+    };
+    var PUHParams = {
+        TableName: PATCH_UPDATE_HISTORY_TABLE,// give it your table name
+        Select: "ALL_ATTRIBUTES"
+    };
+
+    console.log("###Tactics Log###: Searching for latest patch version: Scanning PVH and PDH...");
+    let scanPVHResponse = await dynamoDb.scan(PVHParams);
+    let scanPDHResponse = await dynamoDb.scan(PDHParams);
+    let scanPUHResponse = await dynamoDb.scan(PUHParams);
+
+    if (!scanPVHResponse || !scanPDHResponse || !scanPUHResponse) {
+        throw Error('###Tactics Log###: Can not get PVH/PDH/PUH record: Service Terminating...');
     }
-    scanDBResponse.Items.sort(function(a, b) {
+    scanPVHResponse.Items.sort(function(a, b) {
         return (a.createdAt < b.createdAt) ? -1 : ((a.createdAt > b.createdAt) ? 1 : 0);
     });
 
-    console.log(scanDBResponse);
-    let currentPVHRecord  = scanDBResponse.Items.pop();
-    let currentPVHVersionNUmber = currentPVHRecord.patchVersion;
+    scanPDHResponse.Items.sort(function(a, b) {
+        return (a.createdAt < b.createdAt) ? -1 : ((a.createdAt > b.createdAt) ? 1 : 0);
+    });
+
+    scanPUHResponse.Items.sort(function(a, b) {
+        return (a.createdAt < b.createdAt) ? -1 : ((a.createdAt > b.createdAt) ? 1 : 0);
+    });
+    let currentPVHRecord  = scanPVHResponse.Items.pop();
+    let currentPDHRecord  = scanPDHResponse.Items.pop();
+    let currentPUHRecord  = scanPUHResponse.Items.pop();
+
+    let currentPVHVersionNumber = currentPVHRecord.patchVersion;
+    let currentPUHVersionNumber = currentPUHRecord.patchVersion;
+    let currentPDHVersionNumber = currentPDHRecord.patchVersion;
+
+    let currentPVHStatus = currentPVHRecord.patchVersion;
+    let currentPUHStatus = currentPUHRecord.patchVersion;
+    let currentPDHVStatus = currentPDHRecord.patchVersion;
+
+
+
     if (currentPVHVersionNUmber == latestVersionNumber) {
         console.log(`###Tactics Log###: Current PDH record is ${currentPVHVersionNUmber}, latest GH is ${latestVersionNumber}, skipping update...`);
         // if its the same, update a last check time stamp.

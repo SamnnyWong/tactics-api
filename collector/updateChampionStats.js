@@ -37,7 +37,6 @@ export const main = handler(async (event, context) => {
         Select: "ALL_ATTRIBUTES"
     };
 
-
     console.log("###Tactics Log###: Searching for latest patch version: Scanning DataBase...");
     let scanDBResponse = await dynamoDb.scan(params3);
     // error

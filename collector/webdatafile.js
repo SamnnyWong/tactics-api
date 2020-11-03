@@ -5,6 +5,7 @@ var compInfoList = [];
 
 
 export var webscraper = async (event, context) => {
+    console.log("LLLLLLLLLLLLLLLLLLLLLLLLoading s3 scrapper");
     // var axios = require("axios");
     // var cheerio = require("cheerio");
     // // var championNameList = [];
@@ -59,4 +60,3 @@ export var webscraper = async (event, context) => {
     // console.log(compInfoList);
     return compInfoList;
 };
-
