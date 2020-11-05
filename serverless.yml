@@ -100,6 +100,9 @@ functions:
   localTest:
     handler: sample/localTest.main
 
+  createTable:
+    handler: utility/createTable.main
+
 #  testQueryDB:
 #    handler: sample/queryDynamoDb.main
 #

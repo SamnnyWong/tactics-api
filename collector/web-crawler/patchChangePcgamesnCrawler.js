@@ -3,7 +3,6 @@ var cheerio = require("cheerio");
 export default async function patchChangePcgamesnCrawler (event, context) {
     var result = {};
     var updateList = [];
-    console.log(event.patchVersion);
     const patchVersion = "1022";
     // const url = `https://www.pcgamesn.com/teamfight-tactics/tft-patch-1022${latestVersionNumber}`;
     let pcgamesn_PATCH_CHANGE_URL = 'https://www.pcgamesn.com/teamfight-tactics/tft-patch-1022';

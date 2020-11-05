@@ -59,7 +59,19 @@ export const main = handler(async (event, context) => {
 
 
     // console.log(uuid.v1());
-    const a = undefined;
-    console.log(a);
+    const a = "1";
+    const b = "1";
+    const c = "1";
+    const n = null;
+    const m = undefined;
+    console.log(a===b);
+    console.log(a===b===c);
     console.log(!a);
+    console.log(n===true);
+    if (!n){
+        console.log("here");
+    }
+    if (!m){
+        console.log("here hrererer");
+    }
 });

@@ -18,7 +18,6 @@ export const main = handler(async (event, context, callback) => {
         "message": ''
     };
 
-
     var PVHParams = {
         TableName: PATCH_VERSION_HISTORY_TABLE,// give it your table name
         Select: "ALL_ATTRIBUTES"
@@ -33,10 +32,17 @@ export const main = handler(async (event, context, callback) => {
         Select: "ALL_ATTRIBUTES"
     };
 
+    var TSSParams = {
+        TableName: "tactics-service-status",
+        Select: "ALL_ATTRIBUTES"
+
+    };
+
     console.log("###Tactics Log###: Searching for latest patch version: Scanning PVH and PDH...");
     let scanPVHResponse = await dynamoDb.scan(PVHParams);
     let scanPDHResponse = await dynamoDb.scan(PDHParams);
     let scanPUHResponse = await dynamoDb.scan(PUHParams);
+    let scanTSSResponse = await dynamoDb.scan(TSSParams);
 
     if (!scanPVHResponse || !scanPDHResponse || !scanPUHResponse) {
         throw Error('###Tactics Log###: Can not get PVH/PDH/PUH record: Service Terminating...');
@@ -60,14 +66,13 @@ export const main = handler(async (event, context, callback) => {
     let currentPUHVersionNumber = currentPUHRecord.patchVersion;
     let currentPDHVersionNumber = currentPDHRecord.patchVersion;
 
-    let currentPVHStatus = currentPVHRecord.patchVersion;
+    // let currentPVHStatus = currentPVHRecord.patchVersion;
+    // let currentPDHVStatus = currentPDHRecord.patchVersion;
     let currentPUHStatus = currentPUHRecord.patchVersion;
-    let currentPDHVStatus = currentPDHRecord.patchVersion;
 
-
-
-    if (currentPVHVersionNUmber == latestVersionNumber) {
-        console.log(`###Tactics Log###: Current PDH record is ${currentPVHVersionNUmber}, latest GH is ${latestVersionNumber}, skipping update...`);
+    if (currentPVHVersionNumber === currentPUHVersionNumber && currentPVHVersionNumber === currentPDHVersionNumber && currentPVHVersionNumber !== null && currentPUHStatus.code === "200") {
+        console.log(`###Tactics Log###: PVH, PUH and PDH are at the same version: ${currentPVHVersionNumber}`);
+        console.log(`###Tactics Log###: PUH status is ready to serve.`);
         // if its the same, update a last check time stamp.
         var updatedCurrectPVHRecord = {
             TableName: PATCH_VERSION_HISTORY_TABLE,
@@ -83,13 +88,10 @@ export const main = handler(async (event, context, callback) => {
         };
 
         console.log("###Tactics Log###: Updating the current PVH record...");
-        // dynamoDb.update(updatedCurrectPVHRecord, function(err, data) {
-        //     if (err) {
-        //         console.error("###Tactics Log###: Unable to update item. Error JSON:", JSON.stringify(err, null, 2));
-        //     } else {
-        //         console.log("###Tactics Log###: UpdateItem succeeded:", JSON.stringify(data, null, 2));
-        //     }
-        // });
+
+
+        let scanTSSResponse
+
         let updateDBResponse = await dynamoDb.update(updatedCurrectPVHRecord);
         console.log(updateDBResponse); //2020-10-30T21:10:42.987Z	713f8110-5d56-4782-9921-786ce3ff6a9a	INFO	{} ?????????????
         let message = JSON.stringify(`PVH is up-to-date, PVH record: ${currentPVHRecord.uuid} lastCheck time: ${isoTimeStamp}`);
