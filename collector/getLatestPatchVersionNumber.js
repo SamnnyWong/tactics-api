@@ -56,7 +56,7 @@ export const main = handler(async (event, context, callback) => {
     if (currentPVHVersionNUmber == latestVersionNumber) {
         console.log(`###Tactics Log###: Current PVH record is ${currentPVHVersionNUmber}, latest GH is ${latestVersionNumber}, skipping update...`);
         // if its the same, update a last check time stamp.
-        var updatedCurrentPVHRecord = {
+        var updateCurrentPVHRecord = {
             TableName: PATCH_VERSION_HISTORY_TABLE,
             Key:{
                 "uuid": currentPVHRecord.uuid,
@@ -66,7 +66,6 @@ export const main = handler(async (event, context, callback) => {
             ExpressionAttributeValues:{
                 ":x": isoTimeStamp,
             },
-            ReturnValues: updatedCurrentPVHRecord //what does this do?
         };
 
         console.log("###Tactics Log###: Updating the current PVH record...");
@@ -77,7 +76,7 @@ export const main = handler(async (event, context, callback) => {
         //         console.log("###Tactics Log###: UpdateItem succeeded:", JSON.stringify(data, null, 2));
         //     }
         // });
-        let updateDBResponse = await dynamoDb.update(updatedCurrentPVHRecord);
+        let updateDBResponse = await dynamoDb.update(updateCurrentPVHRecord);
         console.log(updateDBResponse); //2020-10-30T21:10:42.987Z	713f8110-5d56-4782-9921-786ce3ff6a9a	INFO	{} ?????????????
         let message = JSON.stringify(`PVH is up-to-date, PVH record: ${currentPVHRecord.uuid} lastCheck time: ${isoTimeStamp}`);
         response.latestPatchVersion = latestVersionNumber;

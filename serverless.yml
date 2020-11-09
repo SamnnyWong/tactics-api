@@ -97,11 +97,29 @@ functions:
   putChampionItemToDB:
     handler: collector/putChampionItemToDB.main
 
+  createTable:
+    handler: utility/createTable.main
+
+  updateTacticsServiceStatus:
+    handler: verification/updateTacticsServiceStatus.main
+
+  getTacticsServiceStatus:
+    handler: verification/getTacticsServiceStatus.main
+    events:
+      - http:
+          path: tactics-service-status
+          method: get
+
   localTest:
     handler: sample/localTest.main
 
-  createTable:
-    handler: utility/createTable.main
+  getTacticsDistJson:
+    handler: api/getTacticsDistJson.main
+    events:
+        - http:
+            path: get-tactics-dist-json
+            method: get
+
 
 #  testQueryDB:
 #    handler: sample/queryDynamoDb.main

@@ -1,6 +1,7 @@
 import handler from "../libs/handler-lib";
 // import constants from "../assets/constants";
 console.log('Loading hello world function');
+import fetch from "node-fetch";
 
 export const main = handler(async (event, context) => {
     var currentTime = new Date();
@@ -59,19 +60,61 @@ export const main = handler(async (event, context) => {
 
 
     // console.log(uuid.v1());
-    const a = "1";
-    const b = "1";
-    const c = "1";
-    const n = null;
-    const m = undefined;
-    console.log(a===b);
-    console.log(a===b===c);
-    console.log(!a);
-    console.log(n===true);
-    if (!n){
-        console.log("here");
-    }
-    if (!m){
-        console.log("here hrererer");
-    }
+
+    let Items = [
+        {
+            patchVersion: '10.10',
+            serviceId: 'PDH',
+            serviceStatus: 'Service is operating normally',
+            lastCheck: '2020-11-03T07:49:09.061Z',
+            tacticsService: 'patch-data-history'
+        },
+        {
+            patchVersion: '10.10',
+            serviceId: 'PUH',
+            serviceStatus: 'Service is operating normally',
+            lastCheck: '2020-11-03T07:49:09.061Z',
+            tacticsService: 'patch-update-history'
+        },
+        {
+            serviceId: 'PVH',
+            tacticsService: 'patch-version-history',
+            lastCheck: '2020-11-03T07:49:09.061Z',
+            patchVersion: '10.10',
+            serviceStatus: 'Service is operating normally',
+        }
+    ];
+    var PVHindex = Items.findIndex(obj => obj.serviceId=="PVH");
+    var PDHindex = Items.findIndex(obj => obj.serviceId=="PDH");
+    var PUHindex = Items.findIndex(obj => obj.serviceId=="PUH");
+    console.log(`index of PVH is: ${PVHindex}`);
+    console.log(`index of PDH is: ${PDHindex}`);
+    console.log(`index of PUH is: ${PUHindex}`);
+
+    // var db = "https://1ctjksg2k2.execute-api.us-east-1.amazonaws.com/Test";
+
+
+    // let urrl = "https://f8brp6pbai.execute-api.ap-northeast-1.amazonaws.com/dev/latest-patch-version";
+    let TSS_STATUS_URL = "https://f8brp6pbai.execute-api.ap-northeast-1.amazonaws.com/dev/tactics-service-status";
+    let TSSResponse = await fetch(TSS_STATUS_URL);
+    let result = await TSSResponse.json();
+    console.log(result);
+    console.log(result.serviceIsReady);
+    //
+    //
+    // const a = "1";
+    // const b = "1";
+    // const c = "1";
+    // const n = null;
+    // const m = undefined;
+    // console.log(a===b);
+    // console.log(a===b===c);
+    // console.log(!a);
+    // console.log(n===true);
+    // if (!n){
+    //     console.log("here");
+    // }
+    // if (!m){
+    //     console.log("here hrererer");
+    // }
 });

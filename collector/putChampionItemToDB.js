@@ -7,9 +7,6 @@ var jmespath = require('jmespath');
 
 // import * as uuid from "uuid";
 
-// var AWS = require('aws-sdk');
-// var s3 = new AWS.S3();
-
 // import constants from "../assets/constants";
 
 // get latest version number from db
@@ -20,9 +17,9 @@ var jmespath = require('jmespath');
 // table name:
 // table arn
 
-
 export const main = handler(async (event, context) => {
     const PATCH_DATA_HISTORY_TABLE = "patch-data-history";
+    // const TACTICS_TRAITS_POOL = "tactics-traits-pool";
     const TACTICS_BUCKET = 'tactics-uploads';
     var params = {
         TableName: PATCH_DATA_HISTORY_TABLE,

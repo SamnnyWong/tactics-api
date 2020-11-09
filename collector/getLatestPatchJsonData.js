@@ -7,9 +7,7 @@ var jmespath = require('jmespath');
 
 // import * as uuid from "uuid";
 
-// var AWS = require('aws-sdk');
-// var s3 = new AWS.S3();
-
+// future update: if get json file on failed, handle it like get getLatestPatchChange
 // import constants from "../assets/constants";
 
 // get latest version number from db
@@ -130,11 +128,6 @@ export const main = handler(async (event, context) => {
             Body: JSON.stringify(result)
         };
         const s3Response = await s3Bucket.putObject(params);
-        // s3Bucket
-        // const s3Response = await s3.putObject(params).promise();
-        console.log("returning s3 response");
-        console.log(s3Response);
-        console.log("returning s3 response");
         console.log(`###Tactics Log###: Put into s3 bucket success. Object etag: `+ JSON.stringify(s3Response));
 
         console.log(`###Tactics Log###: Constructing PVH  record, putting in PVH, service initializing...`);
