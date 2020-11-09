@@ -124,8 +124,11 @@ functions:
 #  testQueryDB:
 #    handler: sample/queryDynamoDb.main
 #
-#  testListS3Object:
-#    handler: sample/listS3Objects.main
+  getLastComp:
+    handler: collector/web-crawler/getLastCompVersion.main
+
+  S3updater:
+    handler: collector/web-crawler/S3updater.main
 #
 #  testGetS3Objects:
 #    handler: sample/getS3Objects.main

@@ -1,7 +1,7 @@
 var axios = require('axios');
 var cheerio = require("cheerio");
 // var championNameList = [];
-var compInfoList = [];
+var compInfoList = {};
 // var currentPatchVersion = "";
 
 
@@ -10,7 +10,8 @@ export var webscraper = async (event, context) => {
     await axios.get("https://lolchess.gg/meta").then(linkWithCompInfo => {
     var $ = cheerio.load(linkWithCompInfo.data);
     var currentPatchVersion = $(".guide-meta__group__header").text().replace('v','').replace(/\n/g,'').trim();
-    compInfoList.push(currentPatchVersion);
+    compInfoList["patchVersion"] = currentPatchVersion;
+    compInfoList["composition"] = [];
     var eachCompData = $(".guide-meta__deck-box");
 
   // loop through each comp
@@ -49,7 +50,7 @@ export var webscraper = async (event, context) => {
               ItemList: currentCompItemList
           };
           // adds current comp info to comp info list
-          compInfoList.push(eachComp);
+          compInfoList["composition"].push(eachComp);
       }
     });
     // console.log(currentPatchVersion);
