@@ -104,7 +104,7 @@ export const main = handler(async (event, context) => { var dateObject = new Dat
                     "createdAt": currentPUHRecord.createdAt,
                 },
                 // UpdateExpression: "set lastCheck = :x, serviceStatus = :y, traits = :z, champions = :a ,weapons = :b, sourceURL = :c, rawData = :d ",
-                UpdateExpression: "set lastCheck = :x, serviceStatus = :y, rawData = :d ",
+                UpdateExpression: "set lastCheck = :x, serviceStatus = :y, rawData = :d, sourceURL = :c ",
                 ExpressionAttributeValues:{
                     ":x": isoTimeStamp,
                     ":y": { "statusCode": "200", "statusMessage": `fetch patch change from source ${patchChangeResult.sourceURL} successfully.`},
