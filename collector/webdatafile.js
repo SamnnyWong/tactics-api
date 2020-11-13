@@ -4,6 +4,8 @@ var cheerio = require("cheerio");
 var compInfoList = [];
 
 
+// DAVID_TO_DO:///////////////////////////////////////////////////////////////////////////////////////////
+// CAN I DELETE THIS FILE?
 export var webscraper = async (event, context) => {
     console.log("LLLLLLLLLLLLLLLLLLLLLLLLoading s3 scrapper");
     // var axios = require("axios");
