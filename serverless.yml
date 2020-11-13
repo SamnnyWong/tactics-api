@@ -120,15 +120,14 @@ functions:
             path: get-tactics-dist-json
             method: get
 
+  getLatestComposition:
+    handler: collector/getLatestComposition.main
 
-#  testQueryDB:
-#    handler: sample/queryDynamoDb.main
-#
-  getLastComp:
-    handler: collector/web-crawler/getLastCompVersion.main
+#  localTest.js:
+#    sample: sample/localTest.main
 
-  S3updater:
-    handler: collector/web-crawler/S3updater.main
+#  testListS3Object:
+#    handler: sample/listS3Objects.main
 #
 #  testGetS3Objects:
 #    handler: sample/getS3Objects.main

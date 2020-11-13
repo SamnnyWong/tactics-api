@@ -1,4 +1,4 @@
-import * as webdata from "./getLatestComposition";
+import * as webdata from "./web-crawler/compositionCrawlerLolchess";
 // import handler from "./libs/handler-lib";
 var AWS = require('aws-sdk');
 var s3 = new AWS.S3();

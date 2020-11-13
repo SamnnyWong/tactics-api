@@ -53,7 +53,7 @@ export const main = handler(async (event, context) => { var dateObject = new Dat
     console.log(`###Tactics Log###: Fetching patch change from source: ${source}.`);
     let patchChangeResult = null;
     try {
-        patchChangeResult = await patchChangePcgamesnCrawler({ patchVersion:"10.22" });
+        patchChangeResult = await patchChangePcgamesnCrawler({ patchVersion: currentPVHVersionNumber });
     }
     catch (e) {
         console.log(`###Tactics Log###: Shit happened, updating db with a failed status code.`);
@@ -74,9 +74,10 @@ export const main = handler(async (event, context) => { var dateObject = new Dat
                     "uuid": currentPUHRecord.uuid,
                     "createdAt": currentPUHRecord.createdAt,
                 },
-                UpdateExpression: "set lastCheck = :x",
+                UpdateExpression: "set lastCheck = :x, sourceURL = :c",
                 ExpressionAttributeValues:{
                     ":x": isoTimeStamp,
+                    ":c": patchChangeResult.sourceURL
                 },
             };
         }
@@ -102,13 +103,17 @@ export const main = handler(async (event, context) => { var dateObject = new Dat
                     "uuid": currentPUHRecord.uuid,
                     "createdAt": currentPUHRecord.createdAt,
                 },
-                UpdateExpression: "set lastCheck = :x, serviceStatus = :y, traits = :z, champions = :a ,weapons = :b",
+                // UpdateExpression: "set lastCheck = :x, serviceStatus = :y, traits = :z, champions = :a ,weapons = :b, sourceURL = :c, rawData = :d ",
+                UpdateExpression: "set lastCheck = :x, serviceStatus = :y, rawData = :d ",
                 ExpressionAttributeValues:{
                     ":x": isoTimeStamp,
-                    ":y": { "statusCode": "200", "statusMessage": `fetch patch change from source ${source} successfully.`},
-                    ":z": "1",
-                    ":a": "1",
-                    ":b": "1"
+                    ":y": { "statusCode": "200", "statusMessage": `fetch patch change from source ${patchChangeResult.sourceURL} successfully.`},
+                    // ":z": "1",
+                    // ":a": "1",
+                    // ":b": "1",
+                    ":c": patchChangeResult.sourceURL,
+                    ":d": patchChangeResult.updateList
+
                 },
             };
         }

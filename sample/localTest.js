@@ -1,5 +1,6 @@
 import handler from "../libs/handler-lib";
 // import constants from "../assets/constants";
+import patchChangePcgamesnCrawler from "../collector/web-crawler/patchChangePcgamesnCrawler";
 console.log('Loading hello world function');
 import fetch from "node-fetch";
 
@@ -117,4 +118,7 @@ export const main = handler(async (event, context) => {
     // if (!m){
     //     console.log("here hrererer");
     // }
+
+    let patchChangeResult = await patchChangePcgamesnCrawler({ patchVersion:"10.23" });
+    console.log(patchChangeResult);
 });
