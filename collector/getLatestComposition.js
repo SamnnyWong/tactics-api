@@ -2,12 +2,37 @@ import * as webdata from "./web-crawler/compositionCrawlerLolchess";
 // import handler from "./libs/handler-lib";
 var AWS = require('aws-sdk');
 var s3 = new AWS.S3();
-// const documentClient = new AWS.DynamoDB.DocumentClient(); //for DynamoDB use
+// const DDB = new AWS.DynamoDB.DocumentClient(); //for DynamoDB use
+import dynamoDb from "../libs/dynamodb-lib";
+// import { stringify } from "uuid";
 export const main = async (event, context) => {
+    // get the last version number
+    const PATCH_VERSION_HISTORY_TABLE = "patch-version-history";
+
+    var PVHParams = {
+        TableName: PATCH_VERSION_HISTORY_TABLE,// give it your table name
+        Select: "ALL_ATTRIBUTES"
+    };
+
+
+    console.log("###Tactics Log###: Searching for latest patch version: Scanning PVH ");
+    let scanPVHResponse = await dynamoDb.scan(PVHParams);
+
+    if (!scanPVHResponse) {
+        throw Error('###Tactics Log###: Can not get PVH/PDH record: Service Terminating...');
+    }
+    scanPVHResponse.Items.sort(function(a, b) {
+        return (a.createdAt < b.createdAt) ? -1 : ((a.createdAt > b.createdAt) ? 1 : 0);
+    });
+    let currentPVHRecord  = scanPVHResponse.Items.pop();
+    let currentPVHVersionNumber = currentPVHRecord.patchVersion.replace(".","_");
+    console.log(currentPVHVersionNumber);
+
     var bucketName = "tactics-composition";//change to corresponding bucket name
     var paramlist = {
         Bucket: bucketName,
-        Prefix:"10_22"// can change 10.22 to current patch version
+        // Prefix:"10_22"// can change 10.22 to current patch version
+        Prefix: currentPVHVersionNumber
     };
     // find the last version number of the current patch
     try{
@@ -29,8 +54,8 @@ export const main = async (event, context) => {
     var lastVersion = Number(lastKey.split("v")[1].replace(".json",""));
     var currentVersion = lastVersion + 1;
     // if (lastVersion == undefined) currentVersion = 0;
-    var fileName = "10_22"+'_v'+ currentVersion.toString() +'.json';// can change 10.22 to current patch version
-    var keyName = getKeyName("10_22", fileName);// can change 10.22 to current patch version
+    var fileName =currentPVHVersionNumber + '_v' + currentVersion.toString() + '.json';// can change 10.22 to current patch version
+    var keyName = getKeyName(currentPVHVersionNumber, fileName);// can change 10.22 to current patch version
     let s3data = await webdata.webscraper();
     // var content = JSON.stringify(Object.assign({}, s3data));
     s3data["fileName"] = fileName;
