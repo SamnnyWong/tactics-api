@@ -26,40 +26,44 @@ export const main = handler(async (event, context, callback) => {
     var PVHindex = TSSRecords.findIndex(obj => obj.serviceId=="PVH");
     var PDHindex = TSSRecords.findIndex(obj => obj.serviceId=="PDH");
     var PUHindex = TSSRecords.findIndex(obj => obj.serviceId=="PUH");
+    var COMPindex = TSSRecords.findIndex(obj => obj.serviceId=="COMP");
     let PVHRecord = TSSRecords[PVHindex];
     let PDHRecord = TSSRecords[PDHindex];
     let PUHRecord = TSSRecords[PUHindex];
+    let COMPRecord = TSSRecords[COMPindex];
     response.serviceStatus = {
         "PVH patch version": PVHRecord.patchVersion,
         "PDH patch version": PDHRecord.patchVersion,
         "PUH patch version": PUHRecord.patchVersion,
+        "COMP patch version": COMPRecord.patchVersion,
         "PUH serviceStatus": PUHRecord.serviceStatus,
 
     };
 
 
     // DAVID_TO_DO:///////////////////////////////////////////////////////////////////////////////////////////
-    var bucketName = "tactics-composition";//change to corresponding bucket name
-    var paramlist = {
-        Bucket: bucketName,
-        Prefix:"10_22"// can change 10.22 to current patch version
-    };
-    // find the last version number of the current patch
-    try{
-        const response = await s3.listObjectsV2(paramlist).promise();
-        //sort files by last modified date
-        var timesort = response.Contents.sort((a, b) => (a.LastModified < b.LastModified) ? 1 : -1);
-        // console.log(timesort[0]); //return the file with last modified date
+    // var bucketName = "tactics-composition";//change to corresponding bucket name
+    // var paramlist = {
+    //     Bucket: bucketName,
+    //     // Prefix:"10_22"// can change 10.22 to current patch version
+    // };
+    // // find the last version number of the current patch
+    // try{
+    //     const response = await s3.listObjectsV2(paramlist).promise();
+    //     //sort files by last modified date
+    //     var timesort = response.Contents.sort((a, b) => (a.LastModified < b.LastModified) ? 1 : -1);
+    //     // console.log(timesort[0]); //return the file with last modified date
 
-    } catch(e){
-        console.error(e);
-    };
-    var sourceKey = timesort[0].Key;
+    // } catch(e){
+    //     console.error(e);
+    // };
+    // var sourceKey = timesort[0].Key;
     // get the last version of comp file
     // open it, get the patch verion
     // if (PVHRecord.patchVersion === PDHRecord.patchVersion && PVHRecord.patchVersion === PUHRecord.patchVersion && PVHRecord.patchVersion === PACTHCVERIONFROMCOMP FILE && PUHRecord.serviceStatus.statusCode === "200") { //DAVID_TO_DO: compare the composition file patch version with PVHRecord.patchVersion
     // DAVID_TO_DO:///////////////////////////////////////////////////////////////////////////////////////////
-    if (PVHRecord.patchVersion === PDHRecord.patchVersion && PVHRecord.patchVersion === PUHRecord.patchVersion && PUHRecord.serviceStatus.statusCode === "200") { //DAVID_TO_DO: compare the composition file patch version
+    if (PVHRecord.patchVersion === PDHRecord.patchVersion && PVHRecord.patchVersion === PUHRecord.patchVersion 
+        && PVHRecord.patchVersion === COMPRecord.patchVersion && PUHRecord.serviceStatus.statusCode === "200") { //DAVID_TO_DO: compare the composition file patch version
         response.serviceIsReady = true;
     }
     else { response.serviceIsReady = false; }
