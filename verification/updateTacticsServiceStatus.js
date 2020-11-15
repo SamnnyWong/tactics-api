@@ -1,5 +1,7 @@
 import handler from "../libs/handler-lib";
 import dynamoDb from "../libs/dynamodb-lib";
+var AWS = require('aws-sdk');
+var s3 = new AWS.S3();
 // import constants from "../assets/constants";
 
 // service api: https://f8brp6pbai.execute-api.ap-northeast-1.amazonaws.com/dev/latest-patch-version
@@ -8,6 +10,8 @@ export const main = handler(async (event, context, callback) => {
     const PATCH_UPDATE_HISTORY_TABLE   = "patch-update-history";
     const PATCH_DATA_HISTORY_TABLE     = "patch-data-history";
     const TACTICS_SERVICE_STATUS_TABLE = "tactics-service-status";
+    var bucketName = "tactics-composition";//change to corresponding bucket name
+
     var dateObject = new Date();
     let isoTimeStamp = dateObject.toISOString();
 
@@ -31,10 +35,16 @@ export const main = handler(async (event, context, callback) => {
         Select: "ALL_ATTRIBUTES"
     };
 
+    var s3CompParams = {
+        Bucket: bucketName,
+    };
+
     console.log("###Tactics Log###: Scanning PVH PDH and PUH...");
     let scanPVHResponse = await dynamoDb.scan(PVHParams);
     let scanPDHResponse = await dynamoDb.scan(PDHParams);
     let scanPUHResponse = await dynamoDb.scan(PUHParams);
+    // scan the s3
+    let scanS3Response = await s3.listObjectsV2(s3CompParams).promise();
 
     if (!scanPVHResponse || !scanPDHResponse || !scanPUHResponse) {
         throw Error('###Tactics Log###: Can not get PVH/PDH/PUH record: Service Terminating...');
@@ -52,10 +62,27 @@ export const main = handler(async (event, context, callback) => {
     scanPUHResponse.Items.sort(function(a, b) {
         return (a.createdAt < b.createdAt) ? -1 : ((a.createdAt > b.createdAt) ? 1 : 0);
     });
+
+    var s3timeSorted = scanS3Response.Contents.sort((a, b) => (a.LastModified < b.LastModified) ? 1 : -1);
+
     let currentPVHRecord  = scanPVHResponse.Items.pop();
     let currentPDHRecord  = scanPDHResponse.Items.pop();
     let currentPUHRecord  = scanPUHResponse.Items.pop();
+    let currentCompRecord = s3timeSorted[0].Key.split("/")[0].replace("_", ".");
+    console.log(currentCompRecord);
     // scanTSSResponse
+    var updateCurrentCompRecord = {
+        TableName: TACTICS_SERVICE_STATUS_TABLE,
+        Key:{
+            "serviceId": "COMP",
+        },
+        UpdateExpression: "set lastCheck = :x, patchVersion = :y, serviceStatus = :z",
+        ExpressionAttributeValues:{
+            ":x": isoTimeStamp,
+            ":y": currentCompRecord,
+            ":z": "service is operating normally",
+        },
+    };
 
     var updateCurrentPVHRecord = {
         TableName: TACTICS_SERVICE_STATUS_TABLE,
@@ -99,8 +126,9 @@ export const main = handler(async (event, context, callback) => {
     let updatePVHResponse = await dynamoDb.update(updateCurrentPVHRecord);
     let updatePDHResponse = await dynamoDb.update(updateCurrentPDHRecord);
     let updatePUHResponse = await dynamoDb.update(updateCurrentPUHRecord);
+    let updateCOMPResponse = await dynamoDb.update(updateCurrentCompRecord);
 
-    console.log(updatePVHResponse, updatePDHResponse, updatePUHResponse);
+    console.log(updatePVHResponse, updatePDHResponse, updatePUHResponse, updateCOMPResponse);
     let message = JSON.stringify(`Tactics service updated successfully.`);
     response.message = message;
 

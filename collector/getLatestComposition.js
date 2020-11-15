@@ -3,43 +3,46 @@ import * as webdata from "./web-crawler/compositionCrawlerLolchess";
 var AWS = require('aws-sdk');
 var s3 = new AWS.S3();
 // const DDB = new AWS.DynamoDB.DocumentClient(); //for DynamoDB use
-import dynamoDb from "../libs/dynamodb-lib";
+// import dynamoDb from "../libs/dynamodb-lib";
 // import { stringify } from "uuid";
 export const main = async (event, context) => {
     // get the last version number
-    const PATCH_VERSION_HISTORY_TABLE = "patch-version-history";
+    // const PATCH_VERSION_HISTORY_TABLE = "patch-version-history";
 
-    var PVHParams = {
-        TableName: PATCH_VERSION_HISTORY_TABLE,// give it your table name
-        Select: "ALL_ATTRIBUTES"
-    };
+    // var PVHParams = {
+    //     TableName: PATCH_VERSION_HISTORY_TABLE,// give it your table name
+    //     Select: "ALL_ATTRIBUTES"
+    // };
 
 
-    console.log("###Tactics Log###: Searching for latest patch version: Scanning PVH ");
-    let scanPVHResponse = await dynamoDb.scan(PVHParams);
+    // console.log("###Tactics Log###: Searching for latest patch version: Scanning PVH ");
+    // let scanPVHResponse = await dynamoDb.scan(PVHParams);
 
-    if (!scanPVHResponse) {
-        throw Error('###Tactics Log###: Can not get PVH/PDH record: Service Terminating...');
-    }
-    scanPVHResponse.Items.sort(function(a, b) {
-        return (a.createdAt < b.createdAt) ? -1 : ((a.createdAt > b.createdAt) ? 1 : 0);
-    });
-    let currentPVHRecord  = scanPVHResponse.Items.pop();
-    let currentPVHVersionNumber = currentPVHRecord.patchVersion.replace(".","_");
-    console.log(currentPVHVersionNumber);
+    // if (!scanPVHResponse) {
+    //     throw Error('###Tactics Log###: Can not get PVH/PDH record: Service Terminating...');
+    // }
+    // scanPVHResponse.Items.sort(function(a, b) {
+    //     return (a.createdAt < b.createdAt) ? -1 : ((a.createdAt > b.createdAt) ? 1 : 0);
+    // });
+    let s3data = await webdata.webscraper();
+    // console.log(s3data["patchVersion"].replace(".","_"));
+    // let currentPVHRecord  = scanPVHResponse.Items.pop();
+    // let currentPVHVersionNumber = currentPVHRecord.patchVersion.replace(".","_");
+    let currentVersionNumber = s3data["patchVersion"].replace(".","_");
+    // console.log(currentVersionNumber);
 
     var bucketName = "tactics-composition";//change to corresponding bucket name
     var paramlist = {
         Bucket: bucketName,
         // Prefix:"10_22"// can change 10.22 to current patch version
-        Prefix: currentPVHVersionNumber
+        Prefix: currentVersionNumber
     };
     // find the last version number of the current patch
     try{
         const response = await s3.listObjectsV2(paramlist).promise();
         //sort files by last modified date
         var timesort = response.Contents.sort((a, b) => (a.LastModified < b.LastModified) ? 1 : -1);
-        // console.log(timesort[0]); //return the file with last modified date
+        console.log(timesort[0].Key.split("/")[0].replace("_", ".")); //return the file with last modified date
 
     } catch(e){
         console.error(e);
@@ -54,17 +57,16 @@ export const main = async (event, context) => {
     var lastVersion = Number(lastKey.split("v")[1].replace(".json",""));
     var currentVersion = lastVersion + 1;
     // if (lastVersion == undefined) currentVersion = 0;
-    var fileName =currentPVHVersionNumber + '_v' + currentVersion.toString() + '.json';// can change 10.22 to current patch version
-    var keyName = getKeyName(currentPVHVersionNumber, fileName);// can change 10.22 to current patch version
-    let s3data = await webdata.webscraper();
+    var fileName = currentVersionNumber + '_v' + currentVersion.toString() + '.json';// can change 10.22 to current patch version
+    var keyName = getKeyName(currentVersionNumber, fileName);// can change 10.22 to current patch version
     // var content = JSON.stringify(Object.assign({}, s3data));
     s3data["fileName"] = fileName;
     var content = JSON.stringify(Object.assign({}, s3data));
-    var lastFileKey =  (lastKey);
+    // var lastFileKey =  (lastKey);
     // if (timesort[0].Key == undefined) lastFileKey =  "10-22/v0.json";
-    console.log('#####################');
-    console.log(lastFileKey);
-    console.log('#####################');
+    // console.log('#####################');
+    // console.log(lastFileKey, lastSize, content.length);
+    // console.log('#####################');
     // var paramLast = { Bucket: bucketName, Key: lastFileKey};
 
     // s3.getObject(paramLast, async function (err, data) {
@@ -74,7 +76,7 @@ export const main = async (event, context) => {
     //         console.log(data.ContentLength);
     //         console.log("##################");
 
-    if (lastSize === content.length + 2 ) console.log("comp is up to date");
+    if (Math.abs(lastSize - content.length) <= 5) console.log("comp is up to date");
     else {
         var params = { Bucket: bucketName, Key: keyName, Body: content };
 
