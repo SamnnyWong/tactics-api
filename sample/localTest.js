@@ -1,9 +1,10 @@
 import handler from "../libs/handler-lib";
 // import constants from "../assets/constants";
 // import patchChangePcgamesnCrawler from "../collector/web-crawler/patchChangePcgamesnCrawler";
-import patchChangePcgamesnCrawler from "../collector/web-crawler/patchChangeMobaCrawler";
+// import patchChangePcgamesnCrawler from "../collector/web-crawler/patchChangeMobaCrawler";
 console.log('Loading hello world function');
 import fetch from "node-fetch";
+// import constants from "../assets/constants";
 
 export const main = handler(async (event, context) => {
     var currentTime = new Date();
@@ -120,6 +121,9 @@ export const main = handler(async (event, context) => {
     //     console.log("here hrererer");
     // }
 
-    let patchChangeResult = await patchChangePcgamesnCrawler({ patchVersion:"10.23" });
-    console.log(patchChangeResult);
+    // let patchChangeResult = await patchChangePcgamesnCrawler({ patchVersion:"10.23" });
+    // console.log(patchChangeResult);
+    // let ssss = "https://f8brp6pbai.execute-api.ap-northeast-1.amazonaws.com/dev/tactics-service-status";
+    // let ssssss = await fetch(ssss);
+    // console.log(ssssss);
 });

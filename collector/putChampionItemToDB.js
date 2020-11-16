@@ -34,7 +34,7 @@ export const main = handler(async (event, context) => {
     // console.log(`###Tactics Log###: Scanning DB completed, latest version from DataBase is ${latestVersionNumber}`);
     // let latestPatchDataRecordCdragonURL = latestPatchDataRecord.cdragonPatchDataURL;
     // let latestPatchDataVersionNumber = latestPatchDataRecord.patchVersion;
-    let latestPatchDataSetVersioNumber = latestPatchDataRecord.setVersioNumber;
+    let latestPatchDataSetVersionNumber = latestPatchDataRecord.setVersionNumber;
     let latestPatchDataS3ObjectKey = latestPatchDataRecord.s3ObjectKey;
 
     var params2 = {
@@ -43,21 +43,11 @@ export const main = handler(async (event, context) => {
         // Etag: '251a76342e3e6c39274582bbc257b582'
     };
     let file = await s3Bucket.getObject(params2);
-    console.log(`###Tactics Log###: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`);
-    // returns {
-    //   AcceptRanges: 'bytes',
-    //   LastModified: 'Wed, 06 Apr 2016 20:04:02 GMT',
-    //   ContentLength: '1602862',
-    //   ETag: '9826l1e5725fbd52l88ge3f5v0c123a4"',
-    //   ContentType: 'application/octet-stream',
-    //   Metadata: {},
-    //   Body: <Buffer 01 00 00 00  ... > }
-
-
     let objectData = file.Body.toString('utf-8');
     let jsonObj = JSON.parse(objectData);
-    var champions = jmespath.search(jsonObj, `sets."`+ latestPatchDataSetVersioNumber +`".champions[]`);
+    var champions = jmespath.search(jsonObj, `sets."`+ latestPatchDataSetVersionNumber +`".champions[]`);
     var items = jmespath.search(jsonObj, `items`);
+    var traits = jmespath.search(jsonObj, `sets."`+ latestPatchDataSetVersionNumber +`".traits[]`);
 
     async function myFunction1(champions) {
         var i;
@@ -67,13 +57,13 @@ export const main = handler(async (event, context) => {
                 "TableName": "tactics-champion-pool",
                 "Item": {
                     "uuid": uuid.v1(),
-                    "Name": champion.name,
-                    "Icon": champion.icon,
-                    "Cost": champion.cost,
-                    "Ability": champion.ability,
-                    "Stats": champion.stats,
-                    "Class": champion.traits[0],
-                    "Origin": champion.traits[1],
+                    "name": champion.name,
+                    "icon": champion.icon,
+                    "cost": champion.cost,
+                    "ability": champion.ability,
+                    "stats": champion.stats,
+                    "class": champion.traits[0],
+                    "origin": champion.traits[1],
                 }
             };
             await dynamoDb.put(params);
@@ -103,11 +93,32 @@ export const main = handler(async (event, context) => {
         };
         return 'done';
     };
+
+    async function myFunction3(traits) {
+        var i;
+        for (i=0; i < traits.length; i++) {
+            var trait = traits[i];
+            var params3 = {
+                "TableName": "tactics-traits-pool",
+                "Item": {
+                    "uuid": uuid.v1(),
+                    "name": trait.name,
+                    "desc": trait.desc,
+                    "effects": trait.effects,
+                    "icon": trait.icon,
+                }
+            };
+            await dynamoDb.put(params3);
+            // console.log(putDBResponse);
+        };
+        return 'done';
+    };
     let championssss = await myFunction1(champions);
-    let ressss = await myFunction2(items);
+    let weapons = await myFunction2(items);
+    let traitss = await myFunction3(traits);
     console.log(`###Tactics Log###: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`);
-    console.log(ressss, championssss);
+    console.log(championssss, weapons, traitss);
     console.log(`###Tactics Log###: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!`);
-    return (ressss, championssss);
+    return (weapons, championssss, traits);
 });
 
