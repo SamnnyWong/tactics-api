@@ -78,9 +78,8 @@ export const main = handler(async (event, context, callback) => {
         // });
         let updateDBResponse = await dynamoDb.update(updateCurrentPVHRecord);
         console.log(updateDBResponse); //2020-10-30T21:10:42.987Z	713f8110-5d56-4782-9921-786ce3ff6a9a	INFO	{} ?????????????
-        let message = JSON.stringify(`PVH is up-to-date, PVH record: ${currentPVHRecord.uuid} lastCheck time: ${isoTimeStamp}`);
         response.latestPatchVersion = latestVersionNumber;
-        response.message = message;
+        response.message = `PVH is up-to-date, PVH record: ${currentPVHRecord.uuid} lastCheck time: ${isoTimeStamp}`;
     }
     else {
         console.log("###Tactics Log###: Puting into DynamoDB: Initializing Parameter...");
@@ -102,10 +101,8 @@ export const main = handler(async (event, context, callback) => {
             throw Error('###Tactics Log###: Putting in DB failed, service terminating...');
         }
         console.log("###Tactics Log###: Putting into DynamoDB success.");
-        let successMessage = JSON.stringify(`Params: ${JSON.stringify(latestPVHRecord)} put into table: ${PATCH_VERSION_HISTORY_TABLE} success.`);
-
         response.latestPatchVersion = latestVersionNumber;
-        response.message = successMessage;
+        response.message = `Params: ${JSON.stringify(latestPVHRecord)} put into table: ${PATCH_VERSION_HISTORY_TABLE} success.`;
     }
     return response;
 });

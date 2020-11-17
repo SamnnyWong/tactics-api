@@ -113,3 +113,4 @@ dist
 # env
 env.yml
 .env
+.DS_Store

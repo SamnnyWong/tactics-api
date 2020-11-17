@@ -1,4 +1,4 @@
-import handler from "../libs/handler-lib";
+import handler from "../libs/handler-libv2";
 import fetch from "node-fetch";
 import dynamoDb from "../libs/dynamodb-lib";
 import s3Bucket from "../libs/s3bucket-libs";
@@ -30,9 +30,6 @@ export const main = handler(async (event, context) => {
     const PATCH_DATA_HISTORY_TABLE    = "patch-data-history";
 
     let response = {
-        "latestPatchVersion": '',
-        "message": '',
-        "newSetVersionNumber": null
     };
 
     var PVHParams = {
@@ -62,7 +59,7 @@ export const main = handler(async (event, context) => {
     let currentPDHRecord  = scanPDHResponse.Items.pop();
     let currentPVHVersionNumber = currentPVHRecord.patchVersion;
     let currentPDHVersionNumber = currentPDHRecord.patchVersion;
-    var currentPDHRecordSetVersioNumber = currentPDHRecord.setVersioNumber;
+    var currentPDHRecordSetVersionNumber = currentPDHRecord.setVersionNumber;
     console.log(`###Tactics Log###: Scanning PVH and PDH completed.`);
     console.log(`###Tactics Log###: latest PVH record: ${currentPVHVersionNumber}, latest PDH record: ${currentPDHVersionNumber}.`);
 
@@ -85,9 +82,12 @@ export const main = handler(async (event, context) => {
         console.log("###Tactics Log###: Updating the current PDH record...");
         let updateDBResponse = await dynamoDb.update(updatedCurrectPDHRecord);
         console.log(updateDBResponse); //2020-10-30T21:10:42.987Z	713f8110-5d56-4782-9921-786ce3ff6a9a	INFO	{} ?????????????
-        let message = JSON.stringify(`PDH is up-to-date, PDH record: ${currentPDHRecord.uuid} lastCheck time: ${isoTimeStamp}`);
+        let message = `PDH is up-to-date, PDH record: ${currentPDHRecord.uuid} lastCheck time: ${isoTimeStamp}`;
         response.latestPatchVersion = currentPVHVersionNumber;
         response.message = message;
+        response.type = "skip update";
+
+        console.log(response);
     }
     else {
         // if latest PVH and PDH has different patch version number:
@@ -116,8 +116,8 @@ export const main = handler(async (event, context) => {
         var sets = jmespath.search(result, `sets`);
         var setNumbers = [];
         for(var k in sets) setNumbers.push(k);
-        var latestSetVersioNumber = setNumbers.pop(); //4
-        console.log(`###Tactics Log###: Fetch cdragon patch data success, version: ${currentPVHVersionNumber} @ set ` + latestSetVersioNumber);
+        var latestSetVersionNumber = setNumbers.pop(); //4
+        console.log(`###Tactics Log###: Fetch cdragon patch data success, version: ${currentPVHVersionNumber} @ set ` + latestSetVersionNumber);
 
         /////////////////// putting into s3 bucket
         console.log(`###Tactics Log###: Putting latest patch file into S3 Bucket, service initializing...`);
@@ -134,30 +134,65 @@ export const main = handler(async (event, context) => {
         let latestPDHRecord = {
             "TableName": PATCH_DATA_HISTORY_TABLE,
             "Item": {
-                "uuid":                uuid.v1(),
-                "createdAt":           isoTimeStamp,
-                "cdragonPatchDataURL": cdragonPatchDataURL,
-                "patchVersion":        currentPVHVersionNumber,
-                "setVersioNumber":     latestSetVersioNumber,
-                "s3ObjectKey":         s3ObjectKey,
-                "lastCheck":           ""
+                uuid:                uuid.v1(),
+                createdAt:           isoTimeStamp,
+                cdragonPatchDataURL: cdragonPatchDataURL,
+                patchVersion:        currentPVHVersionNumber,
+                setVersionNumber:    latestSetVersionNumber,
+                s3ObjectKey:         s3ObjectKey,
+                lastCheck:           ""
             }
         };
         let putDBResponse = await dynamoDb.put(latestPDHRecord);
         if (! putDBResponse) {
             throw Error('###Tactics Log###: Putting in DB failed, service terminating...');
         }
-        console.log("###Tactics Log###: Putting into DynamoDB success.");
-        let successMessage = JSON.stringify(`Params: ${JSON.stringify(latestPDHRecord)} put into PDH success.`);
+        console.log("###Tactics Log###: Putting into PDH success.");
+        let successMessage = `Params: ${JSON.stringify(latestPDHRecord)} put into PDH success.`;
         response.latestPatchVersion = currentPVHVersionNumber;
         response.message = successMessage;
+
+        if (latestSetVersionNumber === currentPDHRecordSetVersionNumber){
+            console.log(`###Tactics Log###: latest patch data @ set ${latestSetVersionNumber}`);
+            console.log(`###Tactics Log###: current PDH record @ set ${currentPDHRecordSetVersionNumber}`);
+            console.log(`###Tactics Log###: firing up the crawler`);
+            response.type = "regular update"; //10.10=10.10 crawler
+        }
+        else{
+            console.log(`###Tactics Log###: latest patch data @ set ${latestSetVersionNumber}`);
+            console.log(`###Tactics Log###: current PDH record @ set ${currentPDHRecordSetVersionNumber}`);
+            console.log(`###Tactics Log###: firing up putChampionItemToDB`);
+            response.type = "new set update"; // put item to db
+        };
     };
-    if (latestSetVersioNumber == currentPDHRecordSetVersioNumber){
-        response.newSetVersionNumber = false;
-    }
-    else{
-        response.newSetVersionNumber = true;
-    };
+    console.log(response);
     return response;
 });
 
+//
+//
+// var one= {
+//     "statusCode": 200,
+//     "headers": {
+//         "Access-Control-Allow-Origin": "*",
+//         "Access-Control-Allow-Credentials": true
+//     },
+//     "body": {
+//         "latestPatchVersion": "10.23",
+//         "message": "PDH is up-to-date, PDH record: 226c63c0-2739-11eb-86b9-1f7247c0e891 lastCheck time: 2020-11-15T11:53:35.167Z",
+//         "newPatchVersion": false
+//     }
+// };
+//
+// var two = {
+//     "statusCode": 200,
+//     "headers": {
+//         "Access-Control-Allow-Origin": "*",
+//         "Access-Control-Allow-Credentials": true
+//     },
+//     "body": {
+//         "latestPatchVersion": "10.23",
+//         "message": "\"Params: {\\\"TableName\\\":\\\"patch-data-history\\\",\\\"Item\\\":{\\\"uuid\\\":\\\"49b79800-2739-11eb-86b9-1f7247c0e891\\\",\\\"createdAt\\\":\\\"2020-11-15T11:54:16.637Z\\\",\\\"cdragonPatchDataURL\\\":\\\"http://raw.communitydragon.org/10.23/cdragon/tft/en_us.json\\\",\\\"patchVersion\\\":\\\"10.23\\\",\\\"setVersionNumber\\\":\\\"4\\\",\\\"s3ObjectKey\\\":\\\"10.23_en_us.json\\\",\\\"lastCheck\\\":\\\"\\\"}} put into PDH success.\"",
+//         "newSetVersionNumber": false
+//     }
+// };

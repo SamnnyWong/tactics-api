@@ -4,19 +4,19 @@ export default function handler(lambda) {
             // Run the Lambda
             .then(() => lambda(event, context))
             // On success
-            .then((responseBody) => [200, responseBody])
+            .then((responseBody) => [responseBody])
             // On failure
             .catch((e) => {
                 return [500, { error: e.message }];
             })
             // Return HTTP response
-            .then(([statusCode, body]) => ({
-                statusCode,
+            .then(([body]) => ({
+                statusCode: 200,
                 headers: {
                     "Access-Control-Allow-Origin": "*",
                     "Access-Control-Allow-Credentials": true,
                 },
-                body: JSON.stringify(body),
+                body: body,
             }))
             // On failure
             .catch((e) => {
@@ -24,4 +24,3 @@ export default function handler(lambda) {
             });
     };
 }
-

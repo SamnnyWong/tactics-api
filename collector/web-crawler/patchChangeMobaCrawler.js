@@ -2,10 +2,16 @@
 var axios = require('axios');
 var cheerio = require("cheerio");
 // export default async function main (event, context) {
-export var patchscraper = async (event, context) => {
+
+export default async function patchChangeMobaCrawler (event, context) {
+// export var patchscraper = async (event, context) => {
     var result = {};
     var updateList = [];
+<<<<<<< HEAD
     // var data = [];
+=======
+    const patchVersion = event.patchVersion;
+>>>>>>> ffcba47fdf90c3efea607269a6811ec064c0bfad
     var linkWithPatchInfo = await axios.get('https://mobalytics.gg/blog/tft-patch-notes/');
     // console.log(linkWithPatchInfo);
     var $ = cheerio.load(linkWithPatchInfo.data);

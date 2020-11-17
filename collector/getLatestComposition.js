@@ -1,48 +1,30 @@
 import * as webdata from "./web-crawler/compositionCrawlerLolchess";
-// import handler from "./libs/handler-lib";
-var AWS = require('aws-sdk');
-var s3 = new AWS.S3();
-// const DDB = new AWS.DynamoDB.DocumentClient(); //for DynamoDB use
-// import dynamoDb from "../libs/dynamodb-lib";
-// import { stringify } from "uuid";
-export const main = async (event, context) => {
-    // get the last version number
-    // const PATCH_VERSION_HISTORY_TABLE = "patch-version-history";
+import handler from "../libs/handler-lib";
+import s3Bucket from "../libs/s3bucket-libs";
 
-    // var PVHParams = {
-    //     TableName: PATCH_VERSION_HISTORY_TABLE,// give it your table name
-    //     Select: "ALL_ATTRIBUTES"
-    // };
-
-
-    // console.log("###Tactics Log###: Searching for latest patch version: Scanning PVH ");
-    // let scanPVHResponse = await dynamoDb.scan(PVHParams);
-
-    // if (!scanPVHResponse) {
-    //     throw Error('###Tactics Log###: Can not get PVH/PDH record: Service Terminating...');
-    // }
-    // scanPVHResponse.Items.sort(function(a, b) {
-    //     return (a.createdAt < b.createdAt) ? -1 : ((a.createdAt > b.createdAt) ? 1 : 0);
-    // });
+export const main = handler(async (event, context, callback) => {
+    let response = {
+    };
     let s3data = await webdata.webscraper();
-    // console.log(s3data["patchVersion"].replace(".","_"));
-    // let currentPVHRecord  = scanPVHResponse.Items.pop();
-    // let currentPVHVersionNumber = currentPVHRecord.patchVersion.replace(".","_");
     let currentVersionNumber = s3data["patchVersion"].replace(".","_");
-    // console.log(currentVersionNumber);
-
     var bucketName = "tactics-composition";//change to corresponding bucket name
     var paramlist = {
         Bucket: bucketName,
-        // Prefix:"10_22"// can change 10.22 to current patch version
         Prefix: currentVersionNumber
     };
     // find the last version number of the current patch
     try{
-        const response = await s3.listObjectsV2(paramlist).promise();
+        const aws = require('aws-sdk');
+        const s3 = new aws.S3();
+        const listS3response = await s3.listObjectsV2(paramlist).promise();
         //sort files by last modified date
+<<<<<<< HEAD
         var timesort = response.Contents.sort((a, b) => (a.LastModified < b.LastModified) ? 1 : -1);
         // console.log(timesort[0].Key.split("/")[0].replace("_", ".")); //return the file with last modified date
+=======
+        var timesort = listS3response.Contents.sort((a, b) => (a.LastModified < b.LastModified) ? 1 : -1);
+        console.log(timesort[0].Key.split("/")[0].replace("_", ".")); //return the file with last modified date
+>>>>>>> ffcba47fdf90c3efea607269a6811ec064c0bfad
 
     } catch(e){
         console.error(e);
@@ -58,7 +40,15 @@ export const main = async (event, context) => {
     var currentVersion = lastVersion + 1;
     // if (lastVersion == undefined) currentVersion = 0;
     var fileName = currentVersionNumber + '_v' + currentVersion.toString() + '.json';// can change 10.22 to current patch version
-    var keyName = getKeyName(currentVersionNumber, fileName);// can change 10.22 to current patch version
+
+    //========================================================================================
+    // function getKeyName(folder, filename) {
+    //     return folder + '/' + filename;
+    // }
+    // var keyName = getKeyName(currentVersionNumber, fileName);// can change 10.22 to current patch version
+
+    var keyName = currentVersionNumber + '/' + fileName;
+    //========================================================================================
     // var content = JSON.stringify(Object.assign({}, s3data));
     s3data["fileName"] = fileName;
     var content = JSON.stringify(Object.assign({}, s3data));
@@ -76,20 +66,22 @@ export const main = async (event, context) => {
     //         console.log(data.ContentLength);
     //         console.log("##################");
 
-    if (Math.abs(lastSize - content.length) <= 5) console.log("comp is up to date");
+    if (Math.abs(lastSize - content.length) <= 5) {
+        console.log("");
+        console.log(`###Tactics Log###: composition patchVersion is up to date`);
+        response.message = "composition patch version is up to date";
+        response.COMPPatchVersion = currentVersionNumber;
+    }
     else {
         var params = { Bucket: bucketName, Key: keyName, Body: content };
-
-        try{
-            const s3response = await s3.putObject(params).promise();
-            console.log(s3response);
-
+        const putS3Response = await s3Bucket.putObject(params);
+        if (! putS3Response) {
+            throw Error(`###Tactics Log###: Putting in bucket ${bucketName} failed, service terminating...`);
         }
-        catch (error) {
-            console.log(error);
-        }
+        console.log(`###Tactics Log###: Put into bucket: ${bucketName} success. Object etag: `+ putS3Response);
+        response.message = putS3Response;
+        response.COMPPatchVersion = currentVersionNumber;
         // this part is to store Data in DynamoDB
-
         // const tableName = process.env.tableName;
         // const DBdata = JSON.parse(content);
         // console.log(Object.keys(DBdata).length);
@@ -107,18 +99,6 @@ export const main = async (event, context) => {
         //         throw Error('###Tactics Log###: Putting in DB failed, service terminating...');
         //     }
         // }
-        return {
-            headers:{
-                "x-custom-header" : "my custom header value"
-            },
-            statusCode: 200,
-            body: content
-        };
     };
-        // };
-    // });
-
-};
-function getKeyName(folder, filename) {
-    return folder + '/' + filename;
-}
+    return response;
+});

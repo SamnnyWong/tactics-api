@@ -35,7 +35,7 @@ export const main = handler(async (event, context, callback) => {
         Select: "ALL_ATTRIBUTES"
     };
 
-    var s3CompParams = {
+    var COMPParams = {
         Bucket: bucketName,
     };
 
@@ -44,7 +44,7 @@ export const main = handler(async (event, context, callback) => {
     let scanPDHResponse = await dynamoDb.scan(PDHParams);
     let scanPUHResponse = await dynamoDb.scan(PUHParams);
     // scan the s3
-    let scanS3Response = await s3.listObjectsV2(s3CompParams).promise();
+    let scanS3Response = await s3.listObjectsV2(COMPParams).promise();
 
     if (!scanPVHResponse || !scanPDHResponse || !scanPUHResponse) {
         throw Error('###Tactics Log###: Can not get PVH/PDH/PUH record: Service Terminating...');
@@ -63,15 +63,15 @@ export const main = handler(async (event, context, callback) => {
         return (a.createdAt < b.createdAt) ? -1 : ((a.createdAt > b.createdAt) ? 1 : 0);
     });
 
-    var s3timeSorted = scanS3Response.Contents.sort((a, b) => (a.LastModified < b.LastModified) ? 1 : -1);
+    var COMPtimeSorted = scanS3Response.Contents.sort((a, b) => (a.LastModified < b.LastModified) ? 1 : -1);
 
     let currentPVHRecord  = scanPVHResponse.Items.pop();
     let currentPDHRecord  = scanPDHResponse.Items.pop();
     let currentPUHRecord  = scanPUHResponse.Items.pop();
-    let currentCompRecord = s3timeSorted[0].Key.split("/")[0].replace("_", ".");
-    console.log(currentCompRecord);
+    let currentCOMPRecord = COMPtimeSorted[0].Key.split("/")[0].replace("_", ".");
+    console.log(currentCOMPRecord);
     // scanTSSResponse
-    var updateCurrentCompRecord = {
+    var updateCurrentCOMPRecord = {
         TableName: TACTICS_SERVICE_STATUS_TABLE,
         Key:{
             "serviceId": "COMP",
@@ -79,7 +79,7 @@ export const main = handler(async (event, context, callback) => {
         UpdateExpression: "set lastCheck = :x, patchVersion = :y, serviceStatus = :z",
         ExpressionAttributeValues:{
             ":x": isoTimeStamp,
-            ":y": currentCompRecord,
+            ":y": currentCOMPRecord,
             ":z": "service is operating normally",
         },
     };
@@ -126,7 +126,7 @@ export const main = handler(async (event, context, callback) => {
     let updatePVHResponse = await dynamoDb.update(updateCurrentPVHRecord);
     let updatePDHResponse = await dynamoDb.update(updateCurrentPDHRecord);
     let updatePUHResponse = await dynamoDb.update(updateCurrentPUHRecord);
-    let updateCOMPResponse = await dynamoDb.update(updateCurrentCompRecord);
+    let updateCOMPResponse = await dynamoDb.update(updateCurrentCOMPRecord);
 
     console.log(updatePVHResponse, updatePDHResponse, updatePUHResponse, updateCOMPResponse);
     let message = JSON.stringify(`Tactics service updated successfully.`);

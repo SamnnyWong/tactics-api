@@ -81,10 +81,10 @@ functions:
 
   getLatestPatchJsonData:
     handler: collector/getLatestPatchJsonData.main
-    events:
-      - http:
-          path: latest-patch-json-data
-          method: get
+#    events:
+#      - http:
+#          path: latest-patch-json-data
+#          method: get
 
 
   getLatestPatchChange:
@@ -100,9 +100,6 @@ functions:
   createTable:
     handler: utility/createTable.main
 
-  updateTacticsServiceStatus:
-    handler: verification/updateTacticsServiceStatus.main
-
   getTacticsServiceStatus:
     handler: verification/getTacticsServiceStatus.main
     events:
@@ -112,16 +109,50 @@ functions:
 
   localTest:
     handler: sample/localTest.main
-
-  getTacticsDistJson:
-    handler: api/getTacticsDistJson.main
-    events:
-        - http:
-            path: get-tactics-dist-json
-            method: get
-
   getLatestComposition:
     handler: collector/getLatestComposition.main
+
+  updateTacticsServiceStatus:
+    handler: verification/updateTacticsServiceStatus.main
+
+  writeToS3Dist:
+    handler: dist/writeToS3Dist.main
+
+#  below is api
+#  getTacticsDistJson:
+#    handler: api/getTacticsDistJson.main
+#    events:
+#      - http:
+#          path: get-tactics-dist-json
+#          method: get
+
+  getDistChampionsJson:
+    handler: api/getDistChampionsJson.main
+    events:
+      - http:
+          path: get-dist-champions-json
+          method: get
+
+  getDistCompJson:
+    handler: api/getDistCompJson.main
+    events:
+      - http:
+          path: get-dist-comp-json
+          method: get
+
+  getDistItemsJson:
+    handler: api/getDistItemsJson.main
+    events:
+      - http:
+          path: get-dist-items-json
+          method: get
+
+  getDistTraitsJson:
+    handler: api/getDistTraitsJson.main
+    events:
+      - http:
+          path: get-dist-traits-json
+          method: get
 
 #  localTest.js:
 #    sample: sample/localTest.main
