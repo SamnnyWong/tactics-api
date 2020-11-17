@@ -1,6 +1,6 @@
 import handler from "../libs/handler-lib";
 import dynamoDb from "../libs/dynamodb-lib";
-import patchChangePcgamesnCrawler from "../collector/web-crawler/patchChangePcgamesnCrawler";
+import { patchCrawler } from "../collector/web-crawler/patchChangePcgamesnCrawler";
 import * as uuid from "uuid";
 // import constants from "../assets/constants";
 console.log('Loading hello world function');
@@ -53,10 +53,12 @@ export const main = handler(async (event, context) => { var dateObject = new Dat
     console.log(`###Tactics Log###: Fetching patch change from source: ${source}.`);
     let patchChangeResult = null;
     try {
-        patchChangeResult = await patchChangePcgamesnCrawler({ patchVersion: currentPVHVersionNumber });
+        // console.log(currentPVHVersionNumber);
+        patchChangeResult = await patchCrawler(currentPVHVersionNumber);
+        // console.log(patchChangeResult);
     }
     catch (e) {
-        console.log(`###Tactics Log###: Shit happened, updating db with a failed status code.`);
+        console.log(`###Tactics Log###: Shit happened, updating db with a failed status code.`,e);
         // skip here
     };
     if (!patchChangeResult) {

@@ -42,7 +42,7 @@ export const main = async (event, context) => {
         const response = await s3.listObjectsV2(paramlist).promise();
         //sort files by last modified date
         var timesort = response.Contents.sort((a, b) => (a.LastModified < b.LastModified) ? 1 : -1);
-        console.log(timesort[0].Key.split("/")[0].replace("_", ".")); //return the file with last modified date
+        // console.log(timesort[0].Key.split("/")[0].replace("_", ".")); //return the file with last modified date
 
     } catch(e){
         console.error(e);
